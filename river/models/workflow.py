@@ -8,10 +8,12 @@ from river.models.managers.workflowmetada import WorkflowManager
 
 
 class Workflow(BaseModel):
+    """工作流"""
     class Meta:
         app_label = 'river'
         verbose_name = _("Workflow")
         verbose_name_plural = _("Workflows")
+        # content_type 和 field_name 是唯一字段
         unique_together = [("content_type", "field_name")]
 
     objects = WorkflowManager()

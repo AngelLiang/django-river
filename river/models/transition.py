@@ -32,6 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Transition(BaseModel):
+    """流转"""
     class Meta:
         app_label = 'river'
         verbose_name = _("Transition")
@@ -40,13 +41,19 @@ class Transition(BaseModel):
     objects = TransitionApprovalManager()
     content_type = models.ForeignKey(app_config.CONTENT_TYPE_CLASS, verbose_name=_('Content Type'), on_delete=CASCADE)
     object_id = models.CharField(max_length=50, verbose_name=_('Related Object'))
+    # 通用外键
     workflow_object = GenericForeignKey('content_type', 'object_id')
 
+    # 流转元数据
     meta = models.ForeignKey(TransitionMeta, verbose_name=_('Meta'), related_name="transitions", on_delete=PROTECT)
+    # 工作流
     workflow = models.ForeignKey(Workflow, verbose_name=_("Workflow"), related_name='transitions', on_delete=PROTECT)
+    # 源状态
     source_state = models.ForeignKey(State, verbose_name=_("Source State"), related_name='transition_as_source', on_delete=PROTECT)
+    # 目的状态
     destination_state = models.ForeignKey(State, verbose_name=_("Destination State"), related_name='transition_as_destination', on_delete=PROTECT)
 
+    # 状态
     status = models.CharField(_('Status'), choices=STATUSES, max_length=100, default=PENDING)
 
     iteration = models.IntegerField(default=0, verbose_name=_('Priority'))

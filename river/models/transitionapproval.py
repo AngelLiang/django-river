@@ -34,6 +34,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class TransitionApproval(BaseModel):
+    """流转批准"""
     class Meta:
         app_label = 'river'
         verbose_name = _("Transition Approval")

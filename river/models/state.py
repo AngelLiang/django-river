@@ -17,6 +17,7 @@ from river.models.managers.state import StateManager
 
 @python_2_unicode_compatible
 class State(BaseModel):
+    """状态"""
     class Meta:
         app_label = 'river'
         verbose_name = _("State")

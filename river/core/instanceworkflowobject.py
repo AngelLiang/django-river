@@ -142,6 +142,7 @@ class InstanceWorkflowObject(object):
 
         has_transit = False
         if approval.peers.filter(status=PENDING).count() == 0:
+            # 如果所有节点没有PENDING状态，则设置为DONE
             approval.transition.status = DONE
             approval.transition.save()
             previous_state = self.get_state()

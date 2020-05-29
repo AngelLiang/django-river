@@ -13,6 +13,7 @@ from river.models.transitionmeta import TransitionMeta
 
 
 class TransitionApprovalMeta(BaseModel):
+    """流转批准元数据"""
     class Meta:
         app_label = 'river'
         verbose_name = _("Transition Approval Meta")
@@ -21,10 +22,13 @@ class TransitionApprovalMeta(BaseModel):
 
     objects = TransitionApprovalMetadataManager()
 
+    # 工作流
     workflow = models.ForeignKey(Workflow, verbose_name=_("Workflow"), related_name='transition_approval_metas', on_delete=PROTECT)
 
+    # 流转元数据
     transition_meta = models.ForeignKey(TransitionMeta, verbose_name=_("Transition Meta"), related_name='transition_approval_meta', on_delete=PROTECT)
 
+    # 权限
     permissions = models.ManyToManyField(app_config.PERMISSION_CLASS, verbose_name=_('Permissions'), blank=True)
     groups = models.ManyToManyField(app_config.GROUP_CLASS, verbose_name=_('Groups'), blank=True)
     priority = models.IntegerField(default=0, verbose_name=_('Priority'), null=True)

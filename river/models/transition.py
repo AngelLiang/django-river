@@ -49,6 +49,7 @@ class Transition(BaseModel):
 
     status = models.CharField(_('Status'), choices=STATUSES, max_length=100, default=PENDING)
 
+    # 优先级？
     iteration = models.IntegerField(default=0, verbose_name=_('Priority'))
 
     @property
@@ -56,7 +57,7 @@ class Transition(BaseModel):
         return Transition.objects.filter(
             workflow=self.workflow,
             workflow_object=self.workflow_object,
-            source_state=self.destination_state,
+            source_state=self.destination_state,  # 源状态=目的状态
             iteration=self.iteration + 1
         )
 

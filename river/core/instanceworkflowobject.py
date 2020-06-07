@@ -17,12 +17,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 class InstanceWorkflowObject(object):
+    """工作流实例化"""
 
     def __init__(self, workflow_object, field_name):
         self.class_workflow = getattr(workflow_object.__class__.river, field_name)
         self.workflow_object = workflow_object
         self.content_type = app_config.CONTENT_TYPE_CLASS.objects.get_for_model(self.workflow_object)
         self.field_name = field_name
+        # 获取工作流模型示例
         self.workflow = Workflow.objects.filter(content_type=self.content_type, field_name=self.field_name).first()
         self.initialized = False
 
@@ -30,11 +32,13 @@ class InstanceWorkflowObject(object):
     def initialize_approvals(self):
         if not self.initialized:
             if self.workflow and self.workflow.transition_approvals.filter(workflow_object=self.workflow_object).count() == 0:
+                # 获取工作流流转元数据
                 transition_meta_list = self.workflow.transition_metas.filter(source_state=self.workflow.initial_state)
                 iteration = 0
                 processed_transitions = []
                 while transition_meta_list:
                     for transition_meta in transition_meta_list:
+                        # 通过 transition_meta 创建 transition
                         transition = Transition.objects.create(
                             workflow=self.workflow,
                             workflow_object=self.workflow_object,
@@ -43,6 +47,7 @@ class InstanceWorkflowObject(object):
                             meta=transition_meta,
                             iteration=iteration
                         )
+                        # 通过 transition_approval_meta 创建 transition_approval
                         for transition_approval_meta in transition_meta.transition_approval_meta.all():
                             transition_approval = TransitionApproval.objects.create(
                                 workflow=self.workflow,
@@ -59,6 +64,7 @@ class InstanceWorkflowObject(object):
                     ).exclude(pk__in=processed_transitions)
 
                     iteration += 1
+                # while end
                 self.initialized = True
                 LOGGER.debug("Transition approvals are initialized for the workflow object %s" % self.workflow_object)
 
@@ -77,6 +83,7 @@ class InstanceWorkflowObject(object):
 
     @property
     def recent_approval(self):
+        """最近流转模型"""
         try:
             return getattr(self.workflow_object, self.field_name + "_transition_approvals").filter(transaction_date__isnull=False).latest('transaction_date')
         except TransitionApproval.DoesNotExist:
@@ -84,6 +91,7 @@ class InstanceWorkflowObject(object):
 
     @transaction.atomic
     def jump_to(self, state):
+        """跳转"""
         def _transitions_before(iteration):
             return Transition.objects.filter(workflow=self.workflow, workflow_object=self.workflow_object, iteration__lte=iteration)
 
@@ -120,6 +128,7 @@ class InstanceWorkflowObject(object):
         available_approvals = self.get_available_approvals(as_user=as_user)
         number_of_available_approvals = available_approvals.count()
         if number_of_available_approvals == 0:
+            # 没有可流转的状态，抛出异常
             raise RiverException(ErrorCode.NO_AVAILABLE_NEXT_STATE_FOR_USER, "There is no available approval for the user.")
         elif next_state:
             available_approvals = available_approvals.filter(transition__destination_state=next_state)
@@ -128,12 +137,16 @@ class InstanceWorkflowObject(object):
                 raise RiverException(ErrorCode.INVALID_NEXT_STATE_FOR_USER, "Invalid state is given(%s). Valid states is(are) %s" % (
                     next_state.__str__(), ','.join([ast.__str__() for ast in available_states])))
         elif number_of_available_approvals > 1 and not next_state:
+            # 当有多个state可以流转时， next_state 必须设置
             raise RiverException(ErrorCode.NEXT_STATE_IS_REQUIRED, "State must be given when there are multiple states for destination")
 
         approval = available_approvals.first()
         approval.status = APPROVED
+        # 流转人
         approval.transactioner = as_user
+        # 流转时间
         approval.transaction_date = timezone.now()
+        # 上一个流转
         approval.previous = self.recent_approval
         approval.save()
 
@@ -144,20 +157,26 @@ class InstanceWorkflowObject(object):
         if approval.peers.filter(status=PENDING).count() == 0:
             approval.transition.status = DONE
             approval.transition.save()
+            # 获取当前状态
             previous_state = self.get_state()
+            # 设置目的状态
             self.set_state(approval.transition.destination_state)
             has_transit = True
+            # 检查是否循环
             if self._check_if_it_cycled(approval.transition):
                 self._re_create_cycled_path(approval.transition)
             LOGGER.debug("Workflow object %s is proceeded for next transition. Transition: %s -> %s" % (
                 self.workflow_object, previous_state, self.get_state()))
-
+        # 发送信号
         with self._approve_signal(approval), self._transition_signal(has_transit, approval), self._on_complete_signal():
             self.workflow_object.save()
 
     @atomic
     def cancel_impossible_future(self, approved_approval):
+        """取消不可能的流转"""
         transition = approved_approval.transition
+
+        # 筛选条件
         qs = Q(
             workflow=self.workflow,
             object_id=self.workflow_object.pk,
@@ -165,9 +184,11 @@ class InstanceWorkflowObject(object):
             source_state=transition.source_state,
         ) & ~Q(destination_state=transition.destination_state)
 
+        # 获取流转
         transitions = Transition.objects.filter(qs)
         iteration = transition.iteration + 1
         cancelled_transitions_qs = Q(pk=-1)
+        # 遍历流转
         while transitions:
             cancelled_transitions_qs = cancelled_transitions_qs | qs
             qs = Q(
@@ -189,6 +210,7 @@ class InstanceWorkflowObject(object):
         )
         transitions = Transition.objects.filter(qs)
         iteration = transition.iteration + 1
+        # 遍历流转
         while transitions:
             uncancelled_transitions_qs = uncancelled_transitions_qs | qs
             qs = Q(
@@ -201,12 +223,16 @@ class InstanceWorkflowObject(object):
             transitions = Transition.objects.filter(qs)
             iteration += 1
 
+        # 设置不可能发生流转的状态为 CANCELLED
         actual_cancelled_transitions = Transition.objects.select_for_update(nowait=True).filter(cancelled_transitions_qs & ~uncancelled_transitions_qs)
         for actual_cancelled_transition in actual_cancelled_transitions:
             actual_cancelled_transition.status = CANCELLED
             actual_cancelled_transition.save()
-
+        # 更新 TransitionApproval
         TransitionApproval.objects.filter(transition__in=actual_cancelled_transitions).update(status=CANCELLED)
+
+    ################################################################
+    # signal
 
     def _approve_signal(self, approval):
         return ApproveSignal(self.workflow_object, self.field_name, approval)
@@ -217,6 +243,8 @@ class InstanceWorkflowObject(object):
     def _on_complete_signal(self):
         return OnCompleteSignal(self.workflow_object, self.field_name)
 
+    ################################################################
+
     @property
     def _content_type(self):
         return ContentType.objects.get_for_model(self.workflow_object)
@@ -225,15 +253,17 @@ class InstanceWorkflowObject(object):
         return str(self.content_type.pk) + self.field_name + source_state.label
 
     def _check_if_it_cycled(self, done_transition):
+        """检查是否处于循环"""
         qs = Transition.objects.filter(
             workflow_object=self.workflow_object,
             workflow=self.class_workflow.workflow,
             source_state=done_transition.destination_state
         )
-
+        # 当 DONE 大于0， PENDING 为0， 表示处于循环
         return qs.filter(status=DONE).count() > 0 and qs.filter(status=PENDING).count() == 0
 
     def _get_transition_images(self, source_states):
+        """获取流转镜像"""
         meta_max_iteration = Transition.objects.filter(
             workflow=self.workflow,
             workflow_object=self.workflow_object,
@@ -246,6 +276,9 @@ class InstanceWorkflowObject(object):
         )
 
     def _re_create_cycled_path(self, done_transition):
+        """再创建循环路径
+        :prarm done_transition: 已完成的流转
+        """
         old_transitions = self._get_transition_images([done_transition.destination_state.pk])
 
         iteration = done_transition.iteration + 1

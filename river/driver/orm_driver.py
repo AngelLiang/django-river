@@ -10,8 +10,10 @@ from river.models import TransitionApproval, PENDING
 class OrmDriver(RiverDriver):
 
     def get_available_approvals(self, as_user):
+        """获取可用的流转"""
         those_with_max_priority = With(
             TransitionApproval.objects.filter(
+                # 状态为 PENDING
                 workflow=self.workflow, status=PENDING
             ).values(
                 'workflow', 'object_id', 'transition'
@@ -59,8 +61,11 @@ class OrmDriver(RiverDriver):
         return TransitionApproval.objects.filter(
             Q(workflow=self.workflow, status=PENDING) &
             (
+                    # 流转者为空 或 流转者是当前用户
                     (Q(transactioner__isnull=True) | Q(transactioner=as_user)) &
+                    # 权限为空 或 有权限
                     (Q(permissions__isnull=True) | permission_q) &
+                    # 组为空 或 是同一组
                     (Q(groups__isnull=True) | group_q)
             )
         )

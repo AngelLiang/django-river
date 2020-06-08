@@ -52,15 +52,19 @@ class TransitionApproval(BaseModel):
 
     transition = models.ForeignKey(Transition, verbose_name=_("Transition"), related_name='transition_approvals', on_delete=PROTECT)
 
+    # 流转者
     transactioner = models.ForeignKey(app_config.USER_CLASS, verbose_name=_('Transactioner'), null=True, blank=True, on_delete=SET_NULL)
+    # 流转日期时间
     transaction_date = models.DateTimeField(null=True, blank=True)
 
     status = models.CharField(_('Status'), choices=STATUSES, max_length=100, default=PENDING)
 
     permissions = models.ManyToManyField(app_config.PERMISSION_CLASS, verbose_name=_('Permissions'))
     groups = models.ManyToManyField(app_config.GROUP_CLASS, verbose_name=_('Groups'))
-    priority = models.IntegerField(default=0, verbose_name=_('Priority'))
 
+    # 优先级？
+    priority = models.IntegerField(default=0, verbose_name=_('Priority'))
+    # 前一个流转
     previous = TreeOneToOneField("self", verbose_name=_('Previous Transition'), related_name="next_transition", null=True, blank=True, on_delete=CASCADE)
 
     @property

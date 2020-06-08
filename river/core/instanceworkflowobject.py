@@ -35,6 +35,7 @@ class InstanceWorkflowObject(object):
                 # 获取工作流流转元数据
                 transition_meta_list = self.workflow.transition_metas.filter(source_state=self.workflow.initial_state)
                 iteration = 0
+                # 已经处理过的 transitions
                 processed_transitions = []
                 while transition_meta_list:
                     for transition_meta in transition_meta_list:
@@ -59,6 +60,7 @@ class InstanceWorkflowObject(object):
                             transition_approval.permissions.add(*transition_approval_meta.permissions.all())
                             transition_approval.groups.add(*transition_approval_meta.groups.all())
                         processed_transitions.append(transition_meta.pk)
+                    # 下一个 transition_meta 列表
                     transition_meta_list = self.workflow.transition_metas.filter(
                         source_state__in=transition_meta_list.values_list("destination_state", flat=True)
                     ).exclude(pk__in=processed_transitions)

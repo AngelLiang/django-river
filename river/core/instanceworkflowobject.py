@@ -91,7 +91,7 @@ class InstanceWorkflowObject(object):
 
     @property
     def recent_approval(self):
-        """最近流转模型"""
+        """最近的approval"""
         try:
             return getattr(self.workflow_object, self.field_name + "_transition_approvals").filter(transaction_date__isnull=False).latest('transaction_date')
         except TransitionApproval.DoesNotExist:

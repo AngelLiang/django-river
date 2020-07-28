@@ -8,6 +8,7 @@ from river.models.managers.workflowmetada import WorkflowManager
 
 
 class Workflow(BaseModel):
+    """工作流"""
     class Meta:
         app_label = 'river'
         verbose_name = _("Workflow")

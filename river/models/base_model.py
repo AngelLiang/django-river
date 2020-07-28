@@ -11,7 +11,9 @@ AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 class BaseModel(models.Model):
     objects = RiverManager()
 
+    # 创建时间
     date_created = models.DateTimeField(_('Date Created'), null=True, blank=True, auto_now_add=True)
+    # 更新时间
     date_updated = models.DateTimeField(_('Date Updated'), null=True, blank=True, auto_now=True)
 
     class Meta:

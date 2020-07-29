@@ -47,10 +47,10 @@ class StateField(models.ForeignKey):
 
         self.field_name = name
 
-        # 添加类
+        # 添加 transition_approval 类
         self._add_to_class(cls, self.field_name + "_transition_approvals",
                            GenericRelation('%s.%s' % (TransitionApproval._meta.app_label, TransitionApproval._meta.object_name)))
-        # 添加类
+        # 添加 transition 类
         self._add_to_class(cls, self.field_name + "_transitions", GenericRelation('%s.%s' % (Transition._meta.app_label, Transition._meta.object_name)))
 
         if id(cls) not in workflow_registry.workflows:

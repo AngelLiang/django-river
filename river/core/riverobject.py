@@ -9,6 +9,8 @@ from river.core.workflowregistry import workflow_registry
 class RiverObject(object):
 
     def __init__(self, owner):
+        """
+        """
         self.owner = owner
         self.is_class = inspect.isclass(owner)
 
@@ -17,8 +19,10 @@ class RiverObject(object):
         if field_name not in workflow_registry.workflows[id(cls)]:
             raise Exception("Workflow with name:%s doesn't exist for class:%s" % (field_name, cls.__name__))
         if self.is_class:
+            # 返回类级工作流对象
             return ClassWorkflowObject(self.owner, field_name)
         else:
+            # 返回实例级工作流对象
             return InstanceWorkflowObject(self.owner, field_name)
 
     def all(self, cls):

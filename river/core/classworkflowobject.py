@@ -6,6 +6,7 @@ from river.models import State, TransitionApprovalMeta, Workflow, app_config
 
 
 class ClassWorkflowObject(object):
+    """类级工作流对象"""
 
     def __init__(self, wokflow_object_class, field_name):
         self.wokflow_object_class = wokflow_object_class
@@ -34,11 +35,13 @@ class ClassWorkflowObject(object):
 
     @property
     def initial_state(self):
+        """获取初始状态"""
         workflow = Workflow.objects.filter(content_type=self._content_type, field_name=self.field_name).first()
         return workflow.initial_state if workflow else None
 
     @property
     def final_states(self):
+        """获取结束状态"""
         final_approvals = TransitionApprovalMeta.objects.filter(workflow=self.workflow, children__isnull=True)
         return State.objects.filter(pk__in=final_approvals.values_list("transition_meta__destination_state", flat=True))
 

@@ -35,6 +35,7 @@ class InstanceWorkflowObject(object):
             if self.workflow and self.workflow.transition_approvals.filter(workflow_object=self.workflow_object).count() == 0:
                 # 获取工作流流转元数据
                 transition_meta_list = self.workflow.transition_metas.filter(source_state=self.workflow.initial_state)
+                # 迭代层级
                 iteration = 0
                 # 已经处理过的 transitions
                 processed_transitions = []

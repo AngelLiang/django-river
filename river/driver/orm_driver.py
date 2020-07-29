@@ -11,9 +11,10 @@ class OrmDriver(RiverDriver):
 
     def get_available_approvals(self, as_user):
         """获取可用的流转"""
+
         those_with_max_priority = With(
             TransitionApproval.objects.filter(
-                # 状态为 PENDING
+                # 状态为 PENDING 的 TransitionApproval
                 workflow=self.workflow, status=PENDING
             ).values(
                 'workflow', 'object_id', 'transition'
@@ -25,6 +26,7 @@ class OrmDriver(RiverDriver):
             name="workflow_object"
         )
 
+        # 最大优先级的批准
         approvals_with_max_priority = those_with_max_priority.join(
             self._authorized_approvals(as_user),
             workflow_id=those_with_max_priority.col.workflow_id,
@@ -34,6 +36,7 @@ class OrmDriver(RiverDriver):
             those_with_max_priority
         ).annotate(
             object_id_as_str=Cast('object_id', CharField(max_length=200)),
+            # 最小优先级
             min_priority=those_with_max_priority.col.min_priority
         ).filter(min_priority=F("priority"))
 
@@ -44,6 +47,7 @@ class OrmDriver(RiverDriver):
         ).filter(transition__source_state=getattr(workflow_objects.col, self.field_name + "_id"))
 
     def _authorized_approvals(self, as_user):
+        # 权限组查询
         group_q = Q()
         for g in as_user.groups.all():
             group_q = group_q | Q(groups__in=[g])
@@ -65,7 +69,7 @@ class OrmDriver(RiverDriver):
                     (Q(transactioner__isnull=True) | Q(transactioner=as_user)) &
                     # 权限为空 或 有权限
                     (Q(permissions__isnull=True) | permission_q) &
-                    # 组为空 或 是同一组
+                    # 权限组为空 或 处于同一权限组
                     (Q(groups__isnull=True) | group_q)
             )
         )

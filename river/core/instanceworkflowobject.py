@@ -87,7 +87,7 @@ class InstanceWorkflowObject(object):
 
     @property
     def next_approvals(self):
-        """获取下一个流转"""
+        """获取下一个多个流转"""
         transitions = Transition.objects.filter(workflow=self.workflow, object_id=self.workflow_object.pk, source_state=self.get_state())
         return TransitionApproval.objects.filter(transition__in=transitions)
 

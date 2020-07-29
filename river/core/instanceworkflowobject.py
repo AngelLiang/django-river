@@ -87,13 +87,13 @@ class InstanceWorkflowObject(object):
 
     @property
     def next_approvals(self):
-        """下一个流转"""
+        """获取下一个流转"""
         transitions = Transition.objects.filter(workflow=self.workflow, object_id=self.workflow_object.pk, source_state=self.get_state())
         return TransitionApproval.objects.filter(transition__in=transitions)
 
     @property
     def recent_approval(self):
-        """最近的approval"""
+        """获取最近的approval"""
         try:
             return getattr(self.workflow_object, self.field_name + "_transition_approvals").filter(transaction_date__isnull=False).latest('transaction_date')
         except TransitionApproval.DoesNotExist:
@@ -293,6 +293,7 @@ class InstanceWorkflowObject(object):
 
     def _re_create_cycled_path(self, done_transition):
         """再创建循环路径
+
         :prarm done_transition: 已完成的流转
         """
         old_transitions = self._get_transition_images([done_transition.destination_state.pk])
@@ -333,7 +334,9 @@ class InstanceWorkflowObject(object):
     ################################################################
 
     def get_state(self):
+        """获取状态"""
         return getattr(self.workflow_object, self.field_name)
 
     def set_state(self, state):
+        """设置状态"""
         return setattr(self.workflow_object, self.field_name, state)

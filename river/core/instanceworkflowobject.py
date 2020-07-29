@@ -24,12 +24,13 @@ class InstanceWorkflowObject(object):
         self.workflow_object = workflow_object
         self.content_type = app_config.CONTENT_TYPE_CLASS.objects.get_for_model(self.workflow_object)
         self.field_name = field_name
-        # 获取工作流模型示例
+        # 获取工作流模型实例，通过 content_type 和 field_name 获取
         self.workflow = Workflow.objects.filter(content_type=self.content_type, field_name=self.field_name).first()
         self.initialized = False
 
     @transaction.atomic
     def initialize_approvals(self):
+        """初始化批准流程"""
         if not self.initialized:
             if self.workflow and self.workflow.transition_approvals.filter(workflow_object=self.workflow_object).count() == 0:
                 # 获取工作流流转元数据
@@ -124,7 +125,6 @@ class InstanceWorkflowObject(object):
 
     def get_available_states(self, as_user=None):
         """获取可用的状态"""
-        # 获取可用的流转
         all_destination_state_ids = self.get_available_approvals(as_user=as_user).values_list('transition__destination_state', flat=True)
         return State.objects.filter(pk__in=all_destination_state_ids)
 
@@ -138,6 +138,7 @@ class InstanceWorkflowObject(object):
 
     @atomic
     def approve(self, as_user, next_state=None):
+        """批准"""
         available_approvals = self.get_available_approvals(as_user=as_user)
         number_of_available_approvals = available_approvals.count()
         if number_of_available_approvals == 0:
@@ -154,7 +155,8 @@ class InstanceWorkflowObject(object):
             raise RiverException(ErrorCode.NEXT_STATE_IS_REQUIRED, "State must be given when there are multiple states for destination")
 
         approval = available_approvals.first()
-        approval.status = APPROVED
+        # 设置为 批准 状态
+        approval.status = APPROVED  
         # 流转人
         approval.transactioner = as_user
         # 流转时间

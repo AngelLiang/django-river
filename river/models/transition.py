@@ -33,6 +33,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Transition(BaseModel):
     """流转"""
+
     class Meta:
         app_label = 'river'
         verbose_name = _("Transition")
@@ -61,6 +62,7 @@ class Transition(BaseModel):
 
     @property
     def next_transitions(self):
+        """下一个流转"""
         return Transition.objects.filter(
             workflow=self.workflow,
             workflow_object=self.workflow_object,

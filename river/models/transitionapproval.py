@@ -35,6 +35,7 @@ LOGGER = logging.getLogger(__name__)
 
 class TransitionApproval(BaseModel):
     """流转批准"""
+
     class Meta:
         app_label = 'river'
         verbose_name = _("Transition Approval")
@@ -42,14 +43,17 @@ class TransitionApproval(BaseModel):
 
     objects = TransitionApprovalManager()
 
+    # 关联的对象
     content_type = models.ForeignKey(app_config.CONTENT_TYPE_CLASS, verbose_name=_('Content Type'), on_delete=CASCADE)
-
     object_id = models.CharField(max_length=50, verbose_name=_('Related Object'))
     workflow_object = GenericForeignKey('content_type', 'object_id')
 
+    # 元数据
     meta = models.ForeignKey(TransitionApprovalMeta, verbose_name=_('Meta'), related_name="transition_approvals", null=True, blank=True, on_delete=SET_NULL)
+    # 工作流
     workflow = models.ForeignKey(Workflow, verbose_name=_("Workflow"), related_name='transition_approvals', on_delete=PROTECT)
 
+    # 流转
     transition = models.ForeignKey(Transition, verbose_name=_("Transition"), related_name='transition_approvals', on_delete=PROTECT)
 
     # 流转者
@@ -57,9 +61,12 @@ class TransitionApproval(BaseModel):
     # 流转日期时间
     transaction_date = models.DateTimeField(null=True, blank=True)
 
+    # 状态
     status = models.CharField(_('Status'), choices=STATUSES, max_length=100, default=PENDING)
 
+    # 权限
     permissions = models.ManyToManyField(app_config.PERMISSION_CLASS, verbose_name=_('Permissions'))
+    # 权限组
     groups = models.ManyToManyField(app_config.GROUP_CLASS, verbose_name=_('Groups'))
 
     # 优先级？

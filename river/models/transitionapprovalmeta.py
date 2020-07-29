@@ -14,6 +14,7 @@ from river.models.transitionmeta import TransitionMeta
 
 class TransitionApprovalMeta(BaseModel):
     """流转批准元数据"""
+
     class Meta:
         app_label = 'river'
         verbose_name = _("Transition Approval Meta")
@@ -30,8 +31,10 @@ class TransitionApprovalMeta(BaseModel):
 
     # 权限
     permissions = models.ManyToManyField(app_config.PERMISSION_CLASS, verbose_name=_('Permissions'), blank=True)
+    # 权限组
     groups = models.ManyToManyField(app_config.GROUP_CLASS, verbose_name=_('Groups'), blank=True)
     priority = models.IntegerField(default=0, verbose_name=_('Priority'), null=True)
+    # 父级
     parents = models.ManyToManyField('self', verbose_name='parents', related_name='children', symmetrical=False, db_index=True, blank=True)
 
     def __str__(self):
@@ -63,6 +66,7 @@ def post_save_model(sender, instance, *args, **kwargs):
 @transaction.atomic
 def pre_delete_model(sender, instance, *args, **kwargs):
     from river.models.transitionapproval import PENDING
+    # 删除所有 PENDING 的 transition_approval
     instance.transition_approvals.filter(status=PENDING).delete()
 
 

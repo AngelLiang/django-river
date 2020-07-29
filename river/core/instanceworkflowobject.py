@@ -157,12 +157,16 @@ class InstanceWorkflowObject(object):
 
     @atomic
     def cancel_impossible_future(self, approved_approval):
+        """取消不可能的路径"""
         transition = approved_approval.transition
 
+        # 可能流转的id
         possible_transition_ids = {transition.pk}
 
+        # 下一个可能的状态
         possible_next_states = {transition.destination_state.label}
         while possible_next_states:
+            # 可能的流转
             possible_transitions = Transition.objects.filter(
                 workflow=self.workflow,
                 object_id=self.workflow_object.pk,
@@ -170,8 +174,9 @@ class InstanceWorkflowObject(object):
                 source_state__label__in=possible_next_states
             ).exclude(pk__in=possible_transition_ids)
 
+            # 更新可能流转的id
             possible_transition_ids.update(set(possible_transitions.values_list("pk", flat=True)))
-
+            # 设置下一个可能的状态
             possible_next_states = set(possible_transitions.values_list("destination_state__label", flat=True))
 
         cancelled_transitions = Transition.objects.filter(
@@ -181,7 +186,9 @@ class InstanceWorkflowObject(object):
             iteration__gte=transition.iteration
         ).exclude(pk__in=possible_transition_ids)
 
+        # 设置 approval 为 CANCELLED
         TransitionApproval.objects.filter(transition__in=cancelled_transitions).update(status=CANCELLED)
+        # 设置 transition 为 CANCELLED
         cancelled_transitions.update(status=CANCELLED)
 
     def _approve_signal(self, approval):

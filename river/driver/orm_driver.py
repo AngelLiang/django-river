@@ -22,6 +22,7 @@ class OrmDriver(RiverDriver):
         )
 
         workflow_objects = With(
+            # wokflow_object_class 关联的对象类
             self.wokflow_object_class.objects.all(),
             name="workflow_object"
         )
@@ -37,7 +38,7 @@ class OrmDriver(RiverDriver):
         ).annotate(
             # 对象ID
             object_id_as_str=Cast('object_id', CharField(max_length=200)),
-            # 最小优先级
+            # 最小的priority
             min_priority=those_with_max_priority.col.min_priority
         ).filter(min_priority=F("priority"))
 

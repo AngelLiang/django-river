@@ -143,11 +143,12 @@ class InstanceWorkflowObject(object):
         available_approvals = self.get_available_approvals(as_user=as_user)
         number_of_available_approvals = available_approvals.count()
         if number_of_available_approvals == 0:
-            # 没有可流转的状态，抛出异常
+            # 没有可用的流转，抛出异常
             raise RiverException(ErrorCode.NO_AVAILABLE_NEXT_STATE_FOR_USER, "There is no available approval for the user.")
         elif next_state:
             available_approvals = available_approvals.filter(transition__destination_state=next_state)
             if available_approvals.count() == 0:
+                # 如果下一个状态没有可用的流转，抛出异常
                 available_states = self.get_available_states(as_user)
                 raise RiverException(ErrorCode.INVALID_NEXT_STATE_FOR_USER, "Invalid state is given(%s). Valid states is(are) %s" % (
                     next_state.__str__(), ','.join([ast.__str__() for ast in available_states])))
@@ -155,6 +156,7 @@ class InstanceWorkflowObject(object):
             # 当有多个state可以流转时， next_state 必须设置
             raise RiverException(ErrorCode.NEXT_STATE_IS_REQUIRED, "State must be given when there are multiple states for destination")
 
+        # 选取第一个批准
         approval = available_approvals.first()
         # 设置为 批准 状态
         approval.status = APPROVED  
@@ -167,11 +169,12 @@ class InstanceWorkflowObject(object):
         approval.save()
 
         if next_state:
+            # 取消不可能的路径
             self.cancel_impossible_future(approval)
 
         has_transit = False
         if approval.peers.filter(status=PENDING).count() == 0:
-            # 如果没有 PENDING 状态的 approval ，则表示流转结束
+            # 如果没有其他 PENDING 状态的 approval ，则表示流转结束
             approval.transition.status = DONE
             approval.transition.save()
             # 获取当前状态

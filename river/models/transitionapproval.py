@@ -69,7 +69,7 @@ class TransitionApproval(BaseModel):
     # 权限组
     groups = models.ManyToManyField(app_config.GROUP_CLASS, verbose_name=_('Groups'))
 
-    # 优先级？
+    # 排序
     priority = models.IntegerField(default=0, verbose_name=_('Priority'))
     # 前一个流转
     previous = TreeOneToOneField("self", verbose_name=_('Previous Transition'), related_name="next_transition", null=True, blank=True, on_delete=CASCADE)

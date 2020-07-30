@@ -56,12 +56,15 @@ class StateField(models.ForeignKey):
         if id(cls) not in workflow_registry.workflows:
             self._add_to_class(cls, "river", river)
 
+        # 调用父级的方法
         super(StateField, self).contribute_to_class(cls, name, *args, **kwargs)
 
+        # 添加信号处理回调函数
         if id(cls) not in workflow_registry.workflows:
             post_save.connect(_on_workflow_object_saved, self.model, False, dispatch_uid='%s_%s_riverstatefield_post' % (self.model, name))
             post_delete.connect(_on_workflow_object_deleted, self.model, False, dispatch_uid='%s_%s_riverstatefield_post' % (self.model, name))
 
+        # 把本模型的该字段注册到 workflow_registry
         workflow_registry.add(self.field_name, cls)
 
     @staticmethod

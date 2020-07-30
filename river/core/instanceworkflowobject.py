@@ -140,6 +140,7 @@ class InstanceWorkflowObject(object):
     @atomic
     def approve(self, as_user, next_state=None):
         """批准"""
+        # 获取该用户可用的流转
         available_approvals = self.get_available_approvals(as_user=as_user)
         number_of_available_approvals = available_approvals.count()
         if number_of_available_approvals == 0:

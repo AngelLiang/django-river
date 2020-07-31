@@ -22,6 +22,7 @@ class OrmDriver(RiverDriver):
         )
 
         workflow_objects = With(
+            # wokflow_object_class 关联的对象类
             self.wokflow_object_class.objects.all(),
             name="workflow_object"
         )
@@ -35,8 +36,9 @@ class OrmDriver(RiverDriver):
         ).with_cte(
             those_with_max_priority
         ).annotate(
+            # 对象ID
             object_id_as_str=Cast('object_id', CharField(max_length=200)),
-            # 最小优先级
+            # 最小的priority
             min_priority=those_with_max_priority.col.min_priority
         ).filter(min_priority=F("priority"))
 
@@ -44,14 +46,16 @@ class OrmDriver(RiverDriver):
             approvals_with_max_priority, object_id_as_str=Cast(workflow_objects.col.pk, CharField(max_length=200))
         ).with_cte(
             workflow_objects
+        # 流转源状态为 field_name 字段
         ).filter(transition__source_state=getattr(workflow_objects.col, self.field_name + "_id"))
 
     def _authorized_approvals(self, as_user):
-        # 权限组查询
+        # 获取用户所有的权限组
         group_q = Q()
         for g in as_user.groups.all():
             group_q = group_q | Q(groups__in=[g])
 
+        # 获取用户的所有权限
         permissions = []
         for backend in auth.get_backends():
             permissions.extend(backend.get_all_permissions(as_user))
@@ -67,9 +71,9 @@ class OrmDriver(RiverDriver):
             (
                     # 流转者为空 或 流转者是当前用户
                     (Q(transactioner__isnull=True) | Q(transactioner=as_user)) &
-                    # 权限为空 或 有权限
+                    # 权限为空 或 和用户有同一权限
                     (Q(permissions__isnull=True) | permission_q) &
-                    # 权限组为空 或 处于同一权限组
+                    # 权限组为空 或 和用户处于同一权限组
                     (Q(groups__isnull=True) | group_q)
             )
         )

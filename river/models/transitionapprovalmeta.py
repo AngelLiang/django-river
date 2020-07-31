@@ -33,6 +33,7 @@ class TransitionApprovalMeta(BaseModel):
     permissions = models.ManyToManyField(app_config.PERMISSION_CLASS, verbose_name=_('Permissions'), blank=True)
     # 权限组
     groups = models.ManyToManyField(app_config.GROUP_CLASS, verbose_name=_('Groups'), blank=True)
+    # 排序
     priority = models.IntegerField(default=0, verbose_name=_('Priority'), null=True)
     # 父级
     parents = models.ManyToManyField('self', verbose_name='parents', related_name='children', symmetrical=False, db_index=True, blank=True)

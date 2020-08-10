@@ -29,6 +29,9 @@ class TransitionApprovalMeta(BaseModel):
     # 流转元数据
     transition_meta = models.ForeignKey(TransitionMeta, verbose_name=_("Transition Meta"), related_name='transition_approval_meta', on_delete=PROTECT)
 
+    ##########################################################################
+    # 杂项
+    ##########################################################################
     # 权限
     permissions = models.ManyToManyField(app_config.PERMISSION_CLASS, verbose_name=_('Permissions'), blank=True)
     # 权限组

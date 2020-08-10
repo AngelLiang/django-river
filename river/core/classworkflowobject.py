@@ -16,6 +16,7 @@ class ClassWorkflowObject(object):
 
     @property
     def _river_driver(self):
+        # 缓存
         if self._cached_river_driver:
             return self._cached_river_driver
         else:

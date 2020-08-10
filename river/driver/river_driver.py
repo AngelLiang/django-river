@@ -11,4 +11,5 @@ class RiverDriver(object):
 
     @abstractmethod
     def get_available_approvals(self, as_user):
+        """抽象方法"""
         raise NotImplementedError()

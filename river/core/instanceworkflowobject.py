@@ -194,7 +194,9 @@ class InstanceWorkflowObject(object):
 
     @atomic
     def cancel_impossible_future(self, approved_approval):
-        """取消不可能的流转路径"""
+        """取消不可能的流转路径
+        v3.2.2 修复了bug
+        """
         transition = approved_approval.transition
 
         # 源状态是 transition 的源状态，但目的状态不是 transition 的目的状态
@@ -327,6 +329,7 @@ class InstanceWorkflowObject(object):
                         status=PENDING,
                         meta=old_approval.meta
                     )
+                    # 设置权限
                     cycled_approval.permissions.set(old_approval.permissions.all())
                     cycled_approval.groups.set(old_approval.groups.all())
 

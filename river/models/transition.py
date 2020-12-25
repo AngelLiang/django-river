@@ -32,7 +32,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Transition(BaseModel):
-    """流转"""
+    """流转
+    用于保存此次工作流程的流转记录
+    """
 
     class Meta:
         app_label = 'river'
@@ -42,7 +44,6 @@ class Transition(BaseModel):
     objects = TransitionApprovalManager()
     content_type = models.ForeignKey(app_config.CONTENT_TYPE_CLASS, verbose_name=_('Content Type'), on_delete=CASCADE)
     object_id = models.CharField(max_length=50, verbose_name=_('Related Object'))
-    # 通用外键
     workflow_object = GenericForeignKey('content_type', 'object_id')
 
     # 流转元数据

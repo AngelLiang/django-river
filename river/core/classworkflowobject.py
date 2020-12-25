@@ -6,7 +6,7 @@ from river.models import State, TransitionApprovalMeta, Workflow, app_config
 
 
 class ClassWorkflowObject(object):
-    """类级工作流对象"""
+    """工作流模型类级对象"""
 
     def __init__(self, wokflow_object_class, field_name):
         self.wokflow_object_class = wokflow_object_class

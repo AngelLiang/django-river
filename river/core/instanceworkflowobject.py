@@ -17,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class InstanceWorkflowObject(object):
-    """工作流实例化"""
+    """工作流实例对象"""
 
     def __init__(self, workflow_object, field_name):
         self.class_workflow = getattr(workflow_object.__class__.river, field_name)

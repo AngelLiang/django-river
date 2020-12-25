@@ -54,6 +54,7 @@ class StateField(models.ForeignKey):
         self._add_to_class(cls, self.field_name + "_transitions", GenericRelation('%s.%s' % (Transition._meta.app_label, Transition._meta.object_name)))
 
         if id(cls) not in workflow_registry.workflows:
+            # 把 river 对象添加到类属性
             self._add_to_class(cls, "river", river)
 
         # 调用父级的方法

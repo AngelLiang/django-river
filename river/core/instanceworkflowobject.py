@@ -139,7 +139,7 @@ class InstanceWorkflowObject(object):
 
     @atomic
     def approve(self, as_user, next_state=None):
-        """批准"""
+        """审批"""
         # 获取该用户可用的流转
         available_approvals = self.get_available_approvals(as_user=as_user)
         number_of_available_approvals = available_approvals.count()
@@ -157,7 +157,7 @@ class InstanceWorkflowObject(object):
             # 当有多个state可以流转时， next_state 必须设置
             raise RiverException(ErrorCode.NEXT_STATE_IS_REQUIRED, "State must be given when there are multiple states for destination")
 
-        # 选取第一个批准
+        # 选取第一个可用的批准
         approval = available_approvals.first()
         # 设置为 批准 状态
         approval.status = APPROVED  
@@ -306,7 +306,7 @@ class InstanceWorkflowObject(object):
 
         iteration = done_transition.iteration + 1
         while old_transitions:
-            # 从旧的 transitions 创建新的流转
+            # 从旧的 transition 创建新的 transition
             for old_transition in old_transitions:
                 cycled_transition = Transition.objects.create(
                     source_state=old_transition.source_state,

@@ -87,6 +87,7 @@ def _on_workflow_object_saved(sender, instance, created, *args, **kwargs):
 
 
 def _on_workflow_object_deleted(sender, instance, *args, **kwargs):
+    """删除所有该工作流实例的钩子"""
     OnApprovedHook.objects.filter(object_id=instance.pk, content_type=ContentType.objects.get_for_model(instance.__class__)).delete()
     OnTransitHook.objects.filter(object_id=instance.pk, content_type=ContentType.objects.get_for_model(instance.__class__)).delete()
     OnCompleteHook.objects.filter(object_id=instance.pk, content_type=ContentType.objects.get_for_model(instance.__class__)).delete()

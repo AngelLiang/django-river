@@ -23,13 +23,17 @@ class Hook(BaseModel):
     class Meta:
         abstract = True
 
+    # 回调函数
     callback_function = models.ForeignKey(Function, verbose_name=_("Function"), related_name='%(app_label)s_%(class)s_hooks', on_delete=PROTECT)
+    # 关联的工作流
     workflow = models.ForeignKey(Workflow, verbose_name=_("Workflow"), related_name='%(app_label)s_%(class)s_hooks', on_delete=PROTECT)
 
+    # 关联的数据模型
     content_type = models.ForeignKey(ContentType, blank=True, null=True, on_delete=models.SET_NULL)
     object_id = models.CharField(max_length=200, blank=True, null=True)
     workflow_object = GenericForeignKey('content_type', 'object_id')
 
+    # 调用类型
     hook_type = models.CharField(_('When?'), choices=HOOK_TYPES, max_length=50)
 
     def execute(self, context):

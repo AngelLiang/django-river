@@ -23,6 +23,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class TransitionSignal(object):
+    """流转信号"""
     def __init__(self, status, workflow_object, field_name, transition_approval):
         self.status = status
         self.workflow_object = workflow_object
@@ -77,6 +78,7 @@ class TransitionSignal(object):
 
 
 class ApproveSignal(object):
+    """批准信号"""
     def __init__(self, workflow_object, field_name, transition_approval):
         self.workflow_object = workflow_object
         self.field_name = field_name
@@ -128,6 +130,7 @@ class ApproveSignal(object):
 
 
 class OnCompleteSignal(object):
+    """完成信号"""
     def __init__(self, workflow_object, field_name):
         self.workflow_object = workflow_object
         self.field_name = field_name

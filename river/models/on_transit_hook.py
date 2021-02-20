@@ -7,6 +7,7 @@ from river.models.hook import Hook
 
 
 class OnTransitHook(Hook):
+    """流转钩子"""
     class Meta:
         unique_together = [('callback_function', 'workflow', 'transition_meta', 'content_type', 'object_id', 'transition')]
 

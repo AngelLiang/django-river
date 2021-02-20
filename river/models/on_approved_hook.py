@@ -7,6 +7,7 @@ from river.models.hook import Hook
 
 
 class OnApprovedHook(Hook):
+    """批准钩子"""
     class Meta:
         unique_together = [('callback_function', 'workflow', 'transition_approval_meta', 'content_type', 'object_id', 'transition_approval')]
 

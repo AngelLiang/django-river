@@ -11,8 +11,11 @@ loaded_functions = {}
 
 
 class Function(BaseModel):
+    # 函数名称
     name = models.CharField(verbose_name=_("Function Name"), max_length=200, unique=True, null=False, blank=False)
+    # 函数内容
     body = models.TextField(verbose_name=_("Function Body"), max_length=100000, null=False, blank=False)
+    # 版本
     version = models.IntegerField(verbose_name=_("Function Version"), default=0)
 
     def __str__(self):

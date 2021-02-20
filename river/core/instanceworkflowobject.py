@@ -257,12 +257,15 @@ class InstanceWorkflowObject(object):
     # signal
 
     def _approve_signal(self, approval):
+        """批准信号"""
         return ApproveSignal(self.workflow_object, self.field_name, approval)
 
     def _transition_signal(self, has_transit, approval):
+        """流转信号"""
         return TransitionSignal(has_transit, self.workflow_object, self.field_name, approval)
 
     def _on_complete_signal(self):
+        """完成信号"""
         return OnCompleteSignal(self.workflow_object, self.field_name)
 
     ################################################################
